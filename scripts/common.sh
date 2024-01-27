@@ -77,5 +77,5 @@ sudo apt-get install -y jq
 
 local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
 cat > /etc/default/kubelet << EOF
-KUBELET_EXTRA_ARGS=--node-ip=$local_ip --feature-gates='AllAlpha=false,RunAsGroup=true' --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip --feature-gates='AllAlpha=false,RunAsGroup=false' --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m
 EOF
