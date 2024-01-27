@@ -1,26 +1,16 @@
 #!/bin/bash
 #
 # Common setup for kube setup
+
+KUBERNETES_VERSION="1.28.1-00"
+
+
 # disable swap
 sudo swapoff -a
 
 # keeps the swaf off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
-sudo apt-get update -y
-sudo apt-get install -y apt-transport-https ca-certificates curl
 
-sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-sudo apt-get update -y
-
-KUBERNETES_VERSION="1.28.1-00"
-
-
-sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION"
-sudo apt-get update -y
-sudo apt-get install -y jq
 
 
 # Create the .conf file to load the modules at bootup
@@ -39,6 +29,23 @@ net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
+sudo apt-get update -y
+sudo apt-get install -y apt-transport-https ca-certificates curl
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://dl.k8s.io/apt/doc/apt-key.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update -y
+sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION"
+sudo apt-get update -y
+sudo apt-get install -y jq
+
+local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+cat > /etc/default/kubelet << EOF
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip
+
+
+
+
 #NODENAME=$(hostname -s)
 #POD_CIDR="192.168.0.0/16"
 
@@ -51,3 +58,5 @@ EOF
 #curl https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/custom-resources.yaml -O
 
 #kubectl create -f custom-resources.yaml
+
+EOF
