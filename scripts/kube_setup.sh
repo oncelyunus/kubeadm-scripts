@@ -15,7 +15,7 @@ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https:/
 
 sudo apt-get update
 
-sudo apt-get install -y kubelet="1.28.1-00" kubectl="1.28.1-00" kubeadm="1.28.1-00"
+sudo apt-get install -y kubelet=1.28.1-00 kubectl=1.28.1-00 kubeadm=1.28.1-00
 
 # Create the .conf file to load the modules at bootup
 cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
