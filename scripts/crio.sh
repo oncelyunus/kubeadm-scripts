@@ -28,10 +28,5 @@ sudo systemctl enable crio
 
 sudo systemctl status crio
 
-sudo crictl info
-
-sudo apt install -y containernetworking-plugins
-
-sudo crictl --runtime-endpoint unix:///var/run/crio/crio.sock version
 
 sudo crictl info
