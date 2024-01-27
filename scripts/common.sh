@@ -75,7 +75,36 @@ sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSI
 sudo apt-get update -y
 sudo apt-get install -y jq
 
-local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
-cat > /etc/default/kubelet << EOF
-KUBELET_EXTRA_ARGS=--node-ip=$local_ip --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m
+#local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+#cat > /etc/default/kubelet << EOF
+#KUBELET_EXTRA_ARGS=--node-ip=$local_ip --cgroup-driver=systemd --container-runtime-endpoint='unix:///var/run/crio/crio.sock' --runtime-request-timeout=5m
+#EOF
+
+cat << EOF > /etc/systemd/system/kubelet.service.d/kubelet.conf
+# Replace "systemd" with the cgroup driver of your container runtime. The default value in the kubelet is "cgroupfs".
+# Replace the value of "containerRuntimeEndpoint" for a different container runtime if needed.
+#
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: false
+authorization:
+  mode: AlwaysAllow
+cgroupDriver: systemd
+address: 127.0.0.1
+containerRuntimeEndpoint: unix:///var/run/crio/crio.sock
+staticPodPath: /etc/kubernetes/manifests
 EOF
+
+cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/kubelet --config=/etc/systemd/system/kubelet.service.d/kubelet.conf
+Restart=always
+EOF
+
+systemctl daemon-reload
+systemctl restart kubelet
