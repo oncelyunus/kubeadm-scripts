@@ -39,9 +39,7 @@ sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSI
 sudo apt-get update -y
 sudo apt-get install -y jq
 
-local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
-cat > /etc/default/kubelet << EOF
-KUBELET_EXTRA_ARGS=--node-ip=$local_ip
+
 
 
 
@@ -49,7 +47,7 @@ KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 #NODENAME=$(hostname -s)
 #POD_CIDR="192.168.0.0/16"
 
-#sudo kubeadm init --control-plane-endpoint=vmi1619987:6443 --apiserver-advertise-address="$NODENAME" --node-name "$NODENAME" --pod-network-cidr="$POD_CIDR"
+#sudo kubeadm init --control-plane-endpoint=vmi1619987 --apiserver-advertise-address="$NODENAME" --node-name "$NODENAME" --pod-network-cidr="$POD_CIDR"
 
 # Install Claico Network Plugin Network 
 
@@ -59,4 +57,7 @@ KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 
 #kubectl create -f custom-resources.yaml
 
+local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+cat > /etc/default/kubelet << EOF
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 EOF
